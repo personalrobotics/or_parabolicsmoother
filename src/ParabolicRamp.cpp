@@ -31,6 +31,7 @@
 #include "ParabolicRamp.h"
 #include "Config.h"
 #include <iostream>
+#include <cstdio>
 using namespace std;
 
 namespace ParabolicRamp {
