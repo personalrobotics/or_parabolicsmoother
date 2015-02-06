@@ -6,6 +6,7 @@ project(or_parabolicsmoother)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS openrave_catkin)
 
+find_package(OpenRAVE REQUIRED)
 
 ###################################
 ## catkin specific configuration ##
@@ -29,13 +30,28 @@ catkin_package(
 
 include_directories(
   include/${PROJECT_NAME}
+  ${OpenRAVE_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
   src/DynamicPath.cpp
   src/ParabolicRamp.cpp
   src/Timer.cpp
+  src/ParabolicSmoother.cpp
 )
+target_link_libraries(${PROJECT_NAME}
+  ${OpenRAVE_LIBRARY_DIRS}
+  ${catkin_LIBRARIES}
+)
+
+openrave_plugin(${PROJECT_NAME}_plugin
+  src/ParabolicSmootherPlugin.cpp
+)
+target_link_libraries(${PROJECT_NAME}_plugin
+  ${PROJECT_NAME}
+)
+
 
 #############
 ## Install ##
