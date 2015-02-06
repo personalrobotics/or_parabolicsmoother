@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>or_parabolicsmoother</name>
+  <version>0.1.0</version>
+  <description>
+    An OpenRAVE wrapper to a fast smoothing algorithm for robot manipulator
+    trajectories under geometric constraints and bounded acceleration. It is
+    based on code provided with the paper Fast Smoothing of Manipulator
+    Trajectories using Optimal Bounded-Acceleration Shortcuts by K. Hauser and
+    V. Ng-Thow-Hing, appearing in ICRA 2010.
+  </description>
+  <license>BSD</license>
+  <url type="website">http://motion.pratt.duke.edu/software.html</url>
+  <author email="kris.hauser@duke.edu">Kris Hauser</author>
+  <maintainer email="mkoval@cs.cmu.edu">Michael Koval</maintainer>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>openrave_catkin</depend>
+</package>
