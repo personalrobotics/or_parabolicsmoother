@@ -3,15 +3,13 @@
 #include "ParabolicSmoother.h"
 
 using namespace OpenRAVE;
-using namespace or_parabolicsmoother;
-
-static std::string const kInterfaceName = "ParabolicSmootherWorking";
+using or_parabolicsmoother::ParabolicSmoother;
 
 InterfaceBasePtr CreateInterfaceValidated(
         InterfaceType type, std::string const &interfacename,
         std::istream &sinput, EnvironmentBasePtr penv)
 {
-    if (type == PT_Planner && interfacename == kInterfaceName) {
+    if (type == PT_Planner && interfacename == "parabolicsmootherworking") {
         return boost::make_shared<ParabolicSmoother>(penv);
     } else {
         return InterfaceBasePtr();
@@ -20,7 +18,7 @@ InterfaceBasePtr CreateInterfaceValidated(
 
 void GetPluginAttributesValidated(PLUGININFO &info)
 {
-    info.interfacenames[PT_Planner].push_back(kInterfaceName);
+    info.interfacenames[PT_Planner].push_back("ParabolicSmootherWorking");
 }
 
 RAVE_PLUGIN_API void DestroyPlugin()
