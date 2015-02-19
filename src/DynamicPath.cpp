@@ -385,7 +385,7 @@ void DynamicPath::Split(Real t,DynamicPath& before,DynamicPath& after) const
 	temp.TrimFront(t);
 	if(!after.ramps.empty()) {
 	  printf("DynamicPath::Split: Uh... weird, after is not empty?\n");
-	  printf("t = %g, i = %d, endtime = %g\n",t,i,ramps[i].endTime);
+	  printf("t = %g, i = %zu, endtime = %g\n",t,i,ramps[i].endTime);
 	}
 	PARABOLIC_RAMP_ASSERT(after.ramps.size() == 0);
 	after.ramps.push_back(temp);
@@ -834,14 +834,14 @@ bool DynamicPath::IsValid() const
   }
   for(size_t i=0;i<ramps.size();i++) {
     if(!ramps[i].IsValid()) {
-      fprintf(stderr,"DynamicPath::IsValid: ramp %d is invalid\n",i);
+      fprintf(stderr,"DynamicPath::IsValid: ramp %zu is invalid\n",i);
       return false;
     }
     for(size_t j=0;j<ramps[i].ramps.size();j++) {
       if(Abs(ramps[i].ramps[j].a1) > accMax[j]+EpsilonA ||
 	 Abs(ramps[i].ramps[j].v) > velMax[j] ||
 	 Abs(ramps[i].ramps[j].a2) > accMax[j]+EpsilonA) {
-	fprintf(stderr,"DynamicPath::IsValid: invalid acceleration or velocity on ramp %d\n",i);
+	fprintf(stderr,"DynamicPath::IsValid: invalid acceleration or velocity on ramp %zu\n",i);
 	fprintf(stderr,"\ta1 %g, v %g, a2 %g.  amax %g, vmax %g\n",ramps[i].ramps[j].a1,ramps[i].ramps[j].v,ramps[i].ramps[j].a2,accMax[j],velMax[j]);
 	return false;
       }
@@ -849,7 +849,7 @@ bool DynamicPath::IsValid() const
   }
   for(size_t i=1;i<ramps.size();i++) {
     if(ramps[i].x0 != ramps[i-1].x1) {
-      fprintf(stderr,"DynamicPath::IsValid: discontinuity at ramp %d\n",i);
+      fprintf(stderr,"DynamicPath::IsValid: discontinuity at ramp %zu\n",i);
       for(size_t j=0;j<ramps[i].x0.size();j++)
 	fprintf(stderr,"%g ",ramps[i].x0[j]);
       fprintf(stderr,"\n");
@@ -859,7 +859,7 @@ bool DynamicPath::IsValid() const
       return false;
     }
     if(ramps[i].dx0 != ramps[i-1].dx1) {
-      fprintf(stderr,"DynamicPath::IsValid: derivative discontinuity at ramp %d\n",i);
+      fprintf(stderr,"DynamicPath::IsValid: derivative discontinuity at ramp %zu\n",i);
       for(size_t j=0;j<ramps[i].dx0.size();j++)
 	fprintf(stderr,"%g ",ramps[i].dx0[j]);
       fprintf(stderr,"\n");
