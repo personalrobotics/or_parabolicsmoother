@@ -215,19 +215,22 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     );
     BOOST_ASSERT(tolerance > 0.);
     RAVELOG_DEBUG("Creating collision checker with resolution %f.\n",
-        tolerance
-    );
+                  tolerance);
 
+    // Create feasibiility checkers that evaluate the OpenRAVE environment.
     ORFeasibilityChecker base_checker(env, parameters_);
     ParabolicRamp::RampFeasibilityChecker ramp_checker(&base_checker, tolerance);
 
-    // Shortcut.
     // TODO: Split this into multiple iterations so we can call callbacks.
-    RAVELOG_DEBUG("Shortcutting for %d iterations.\n",
-        parameters_->_nMaxIterations
-    );
+    // Shortcut using maximum number of iterations. According to OpenRAVE spec:
+    // If 0 or less, planner chooses best iterations.
+    int max_iterations = (parameters_->_nMaxIterations > 0) ?
+                          parameters_->_nMaxIterations : DEFAULT_MAX_ITERATIONS;
 
-    dynamic_path.Shortcut(parameters_->_nMaxIterations, ramp_checker);
+    RAVELOG_DEBUG("Shortcutting for %d iterations.\n", max_iterations);
+
+    // Perform actual shortcut operation in this loop.
+    dynamic_path.Shortcut(max_iterations, ramp_checker);
 
     if (!dynamic_path.IsValid()) {
         return OpenRAVE::PS_Failed;
@@ -242,8 +245,7 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     output_cspec.AddDeltaTimeGroup();
 
     RAVELOG_DEBUG("Creating output trajectory (duration: %f).\n",
-        dynamic_path.GetTotalTime()
-    );
+                  dynamic_path.GetTotalTime());
     OpenRAVE::planningutils::ConvertTrajectorySpecification(traj, output_cspec);
 
     // Generate all ramp start/end times and acceleration switching times.
@@ -265,8 +267,7 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     }
 
     RAVELOG_DEBUG("Detected %d critical ramp transition points.\n",
-        sample_times.size()
-    );
+                  sample_times.size());
 
     // Insert the critical points into the output trajectory.
     double prev_t = 0.;

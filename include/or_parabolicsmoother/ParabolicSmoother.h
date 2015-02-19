@@ -5,6 +5,7 @@
 
 namespace or_parabolicsmoother {
 
+const int DEFAULT_MAX_ITERATIONS = 25;
 
 class ORFeasibilityChecker : public ParabolicRamp::FeasibilityCheckerBase {
 public:
