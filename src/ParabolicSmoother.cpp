@@ -166,7 +166,6 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     BOOST_ASSERT(dynamic_path.velMax.size() == num_dof);
     BOOST_ASSERT(dynamic_path.accMax.size() == num_dof);
 
-#if 0
     RAVELOG_DEBUG("Setting joint limits.\n");
     dynamic_path.SetJointLimits(
         Convert<double>(parameters_->_vConfigLowerLimit),
@@ -174,7 +173,6 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     );
     BOOST_ASSERT(dynamic_path.xMin.size() == num_dof);
     BOOST_ASSERT(dynamic_path.xMax.size() == num_dof);
-#endif
     
     // Copy milestones into the DynamicPath. This assumes that the input
     // trajectory is piecewise linear and stops at each waypoint.
@@ -211,23 +209,25 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
     // Choose the most conservative resolution because RampFeasibilityChecker
     // does not support per-DOF resolutions.
-    RAVELOG_DEBUG("Creating collision checker.\n");
-
     OpenRAVE::dReal const tolerance = *std::min_element(
         parameters_->_vConfigResolution.begin(),
         parameters_->_vConfigResolution.end()
     );
     BOOST_ASSERT(tolerance > 0.);
+    RAVELOG_DEBUG("Creating collision checker with resolution %f.\n",
+        tolerance
+    );
 
     ORFeasibilityChecker base_checker(env, parameters_);
     ParabolicRamp::RampFeasibilityChecker ramp_checker(&base_checker, tolerance);
 
     // Shortcut.
     // TODO: Split this into multiple iterations so we can call callbacks.
-    RAVELOG_DEBUG("Shortcutting for %d iterations.\n", parameters_->_nMaxIterations);
+    RAVELOG_DEBUG("Shortcutting for %d iterations.\n",
+        parameters_->_nMaxIterations
+    );
 
-    //dynamic_path.Shortcut(parameters_->_nMaxIterations, ramp_checker);
-    dynamic_path.Shortcut(10, ramp_checker);
+    dynamic_path.Shortcut(parameters_->_nMaxIterations, ramp_checker);
 
     // Clear the trajectory to write in the output.
     traj->Remove(0, traj->GetNumWaypoints());
@@ -237,24 +237,43 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     OpenRAVE::ConfigurationSpecification output_cspec = pos_cspec + vel_cspec;
     output_cspec.AddDeltaTimeGroup();
 
-    RAVELOG_DEBUG("Creating output trajectory (duration: %f).\n", dynamic_path.GetTotalTime());
+    RAVELOG_DEBUG("Creating output trajectory (duration: %f).\n",
+        dynamic_path.GetTotalTime()
+    );
     OpenRAVE::planningutils::ConvertTrajectorySpecification(traj, output_cspec);
 
-    ConvertWaypoint(traj, dynamic_path, 0., 0.);
+    // Generate all ramp start/end times and acceleration switching times.
+    std::set<double> sample_times;
 
-    //double t = dynamic_path.ramps[0].endTime;
-    size_t hack_n = 10000;
-    double t = dynamic_path.GetTotalTime() / hack_n;
+    double t = 0.;
+    sample_times.insert(t);
 
-    //for (size_t iramp = 0; iramp < dynamic_path.ramps.size(); ++iramp) {
-    for (size_t iramp = 0; iramp < hack_n; ++iramp) {
-        //double const dt = dynamic_path.ramps[iramp].endTime;
-        double const dt = dynamic_path.GetTotalTime() / hack_n; 
+    BOOST_FOREACH (ParabolicRamp::ParabolicRampND const &ramp_nd,
+                   dynamic_path.ramps) {
+        BOOST_FOREACH (ParabolicRamp::ParabolicRamp1D const &ramp_1d,
+                       ramp_nd.ramps) {
+            sample_times.insert(t + ramp_1d.tswitch1);
+            sample_times.insert(t + ramp_1d.tswitch2);
+        }
 
-        RAVELOG_DEBUG("Converting ramp %d (duration: %f).\n", iramp, dt);
+        t += ramp_nd.endTime;
+        sample_times.insert(t);
+    }
+
+    RAVELOG_DEBUG("Detected %d critical ramp transition points.\n",
+        sample_times.size()
+    );
+
+    // Insert the critical points into the output trajectory.
+    double prev_t = 0.;
+    ConvertWaypoint(traj, dynamic_path, prev_t, 0.);
+
+    BOOST_FOREACH (double const t, sample_times) {
+        double const dt = t - prev_t;
+        BOOST_ASSERT(dt >= 0.);
+        prev_t = t;
+
         ConvertWaypoint(traj, dynamic_path, t, dt);
-
-        t += dt;
     }
 
     return (dynamic_path.IsValid()) ? OpenRAVE::PS_HasSolution
