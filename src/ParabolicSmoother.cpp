@@ -229,6 +229,10 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
     dynamic_path.Shortcut(parameters_->_nMaxIterations, ramp_checker);
 
+    if (!dynamic_path.IsValid()) {
+        return OpenRAVE::PS_Failed;
+    }
+
     // Clear the trajectory to write in the output.
     traj->Remove(0, traj->GetNumWaypoints());
     BOOST_ASSERT(traj->GetNumWaypoints() == 0);
@@ -276,8 +280,7 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
         ConvertWaypoint(traj, dynamic_path, t, dt);
     }
 
-    return (dynamic_path.IsValid()) ? OpenRAVE::PS_HasSolution
-                                    : OpenRAVE::PS_Failed;
+    return OpenRAVE::PS_HasSolution;
 }
 
 OpenRAVE::PlannerBase::PlannerParametersConstPtr
