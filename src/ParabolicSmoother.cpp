@@ -96,7 +96,7 @@ bool ORFeasibilityChecker::ConfigFeasible(ParabolicRamp::Vector const &x)
     std::vector<OpenRAVE::dReal> const or_x = Convert<OpenRAVE::dReal>(x);
     std::vector<OpenRAVE::dReal> const empty;
 
-    return params_->CheckPathAllConstraints(
+    return !params_->CheckPathAllConstraints(
         x, x, empty, empty, 0, OpenRAVE::IT_OpenStart
     );
 }
@@ -108,7 +108,7 @@ bool ORFeasibilityChecker::SegmentFeasible(ParabolicRamp::Vector const &a,
     std::vector<OpenRAVE::dReal> const or_b = Convert<OpenRAVE::dReal>(b);
     std::vector<OpenRAVE::dReal> const empty;
 
-    return params_->CheckPathAllConstraints(
+    return !params_->CheckPathAllConstraints(
         a, b, empty, empty, 0, OpenRAVE::IT_OpenStart
     );
 }
@@ -225,10 +225,9 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     // Shortcut.
     // TODO: Split this into multiple iterations so we can call callbacks.
     RAVELOG_DEBUG("Shortcutting for %d iterations.\n", parameters_->_nMaxIterations);
-    RAVELOG_DEBUG("|accMax| = %d\n", dynamic_path.accMax.size());
 
     //dynamic_path.Shortcut(parameters_->_nMaxIterations, ramp_checker);
-    //dynamic_path.Shortcut(500, ramp_checker);
+    dynamic_path.Shortcut(10, ramp_checker);
 
     // Clear the trajectory to write in the output.
     traj->Remove(0, traj->GetNumWaypoints());
@@ -243,10 +242,14 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
     ConvertWaypoint(traj, dynamic_path, 0., 0.);
 
-    double t = dynamic_path.ramps[0].endTime;
+    //double t = dynamic_path.ramps[0].endTime;
+    size_t hack_n = 10000;
+    double t = dynamic_path.GetTotalTime() / hack_n;
 
-    for (size_t iramp = 0; iramp < dynamic_path.ramps.size(); ++iramp) {
-        double const dt = dynamic_path.ramps[iramp].endTime;
+    //for (size_t iramp = 0; iramp < dynamic_path.ramps.size(); ++iramp) {
+    for (size_t iramp = 0; iramp < hack_n; ++iramp) {
+        //double const dt = dynamic_path.ramps[iramp].endTime;
+        double const dt = dynamic_path.GetTotalTime() / hack_n; 
 
         RAVELOG_DEBUG("Converting ramp %d (duration: %f).\n", iramp, dt);
         ConvertWaypoint(traj, dynamic_path, t, dt);
