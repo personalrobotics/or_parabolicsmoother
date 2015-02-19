@@ -77,8 +77,8 @@ OpenRAVE::dReal FixLimit(OpenRAVE::dReal const &x,
 
 }
 
-namespace or_parabolicsmoother {
-
+namespace or_parabolicsmoother
+{
 
 /*
  * ORFeasibilityChecker 
