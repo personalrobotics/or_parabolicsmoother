@@ -5,7 +5,7 @@
 #include <openrave/openrave.h>
 
 ///assertion function
-#define PARABOLIC_RAMP_ASSERT(x) BOOST_ASSERT(x)
+#define PARABOLIC_RAMP_ASSERT(x)
 
 ///print an error
 #define PARABOLIC_RAMP_PERROR(...) (RAVELOG_ERROR(__VA_ARGS__))
