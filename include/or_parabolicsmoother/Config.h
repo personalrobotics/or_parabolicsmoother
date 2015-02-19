@@ -2,15 +2,16 @@
 #define PARABOLIC_RAMP_CONFIG_H
 
 #include <assert.h>
+#include <openrave/openrave.h>
 
 ///assertion function
-#define PARABOLIC_RAMP_ASSERT(x) 
+#define PARABOLIC_RAMP_ASSERT(x) BOOST_ASSERT(x)
 
 ///print an error
-#define PARABOLIC_RAMP_PERROR(...) fprintf(stderr,__VA_ARGS__)
+#define PARABOLIC_RAMP_PERROR(...) (RAVELOG_ERROR(__VA_ARGS__))
 
 ///print a notification
-#define PARABOLIC_RAMP_PLOG(...) printf(__VA_ARGS__)
+#define PARABOLIC_RAMP_PLOG(...) (RAVELOG_DEBUG(__VA_ARGS__))
 
 namespace ParabolicRamp {
 
@@ -39,10 +40,10 @@ namespace ParabolicRamp {
   const static int gVerbose = 2;
 
   ///whether or not to pause on serious errors
-  const static bool gErrorGetchar = true;
+  const static bool gErrorGetchar = false;
 
   ///whether or not errors are logged to disk
-  const static bool gErrorSave = true;
+  const static bool gErrorSave = false;
 
 } //namespace ParabolicRamp
 
