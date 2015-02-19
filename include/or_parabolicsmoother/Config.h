@@ -4,7 +4,7 @@
 #include <assert.h>
 
 ///assertion function
-#define PARABOLIC_RAMP_ASSERT(x) assert(x)
+#define PARABOLIC_RAMP_ASSERT(x) 
 
 ///print an error
 #define PARABOLIC_RAMP_PERROR(...) fprintf(stderr,__VA_ARGS__)

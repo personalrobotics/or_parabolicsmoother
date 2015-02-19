@@ -8,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS openrave_catkin)
 
 find_package(OpenRAVE REQUIRED)
 
+add_definitions(-g)
+
 ###################################
 ## catkin specific configuration ##
 ###################################
