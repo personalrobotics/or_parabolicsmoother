@@ -9,7 +9,7 @@ InterfaceBasePtr CreateInterfaceValidated(
         InterfaceType type, std::string const &interfacename,
         std::istream &sinput, EnvironmentBasePtr penv)
 {
-    if (type == PT_Planner && interfacename == "parabolicsmootherworking") {
+    if (type == PT_Planner && interfacename == "hauserparabolicsmoother") {
         return boost::make_shared<ParabolicSmoother>(penv);
     } else {
         return InterfaceBasePtr();
@@ -18,7 +18,7 @@ InterfaceBasePtr CreateInterfaceValidated(
 
 void GetPluginAttributesValidated(PLUGININFO &info)
 {
-    info.interfacenames[PT_Planner].push_back("ParabolicSmootherWorking");
+    info.interfacenames[PT_Planner].push_back("HauserParabolicSmoother");
 }
 
 RAVE_PLUGIN_API void DestroyPlugin()
