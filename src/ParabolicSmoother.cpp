@@ -74,6 +74,84 @@ OpenRAVE::dReal FixLimit(OpenRAVE::dReal const &x,
     }
 }
 
+bool NeedsBlend(ParabolicRamp::ParabolicRampND const &ramp_nd)
+{
+    static double const velocity_epsilon = 1e-12;
+
+    for (size_t idof = 0; idof < ramp_nd.dx1.size(); ++idof) {
+        if (std::fabs(ramp_nd.dx1[idof]) > velocity_epsilon) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool TryBlend(ParabolicRamp::DynamicPath &dynamic_path,
+              ParabolicRamp::RampFeasibilityChecker &ramp_checker,
+              int attempt, double dt_shortcut)
+{
+    size_t const num_ramps = dynamic_path.ramps.size();
+    double const t_max = dynamic_path.GetTotalTime();
+    double t = 0;
+
+    RAVELOG_DEBUG("Trying to blend %d ramp trajectory with duration %.3f s"
+                  " using dt = %.3f.\n",
+        dynamic_path.ramps.size(), t_max, dt_shortcut
+    );
+
+    for (size_t iwaypoint = 0; iwaypoint < num_ramps - 1; ++iwaypoint) {
+        ParabolicRamp::ParabolicRampND &ramp_nd
+                = dynamic_path.ramps[iwaypoint];
+        t += ramp_nd.endTime;
+
+        if (NeedsBlend(ramp_nd) && ramp_nd.blendAttempts == attempt) {
+            double const t1 = std::max(t - dt_shortcut, 0.);
+            double const t2 = std::min(t + dt_shortcut, t_max);
+
+            bool const success = dynamic_path.TryShortcut(t1, t2, ramp_checker);
+
+            RAVELOG_DEBUG("Blending [ %.3f, %.3f ] transition between ramp %d"
+                          " and %d at t = %.3f: %s.\n",
+                t1, t2, iwaypoint, iwaypoint + 1, t,
+                (success) ? "succeeded" : "failed"
+            );
+
+            if (success) {
+                return true;
+            } else {
+                ramp_nd.blendAttempts++;
+            }
+        }
+    }
+
+    return false;
+}
+
+void BlendTransitions(ParabolicRamp::DynamicPath &dynamic_path,
+                      ParabolicRamp::RampFeasibilityChecker &ramp_checker,
+                      double dt_shortcut_max, int num_attempts)
+{
+    // Mark all of the ramps in the initial trajectory as "original". We'll
+    // only try to blend transitions between these ramps.
+    BOOST_FOREACH (ParabolicRamp::ParabolicRampND &ramp_nd,
+                   dynamic_path.ramps) {
+        ramp_nd.blendAttempts = 0;
+    }
+
+    double dt_shortcut = dt_shortcut_max;
+
+    for (int attempt = 0; attempt < num_attempts; ++attempt) {
+        RAVELOG_DEBUG("Blending attempt %d (dt = %.3f) on trajectory with %d ramps"
+                      " and duration %.3f s.\n",
+            attempt, dt_shortcut, dynamic_path.ramps.size(),
+            dynamic_path.GetTotalTime()
+        );
+
+        while (TryBlend(dynamic_path, ramp_checker, attempt, dt_shortcut));
+
+        dt_shortcut /= 2.;
+    }
+}
 
 }
 
@@ -231,6 +309,10 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
     // Perform actual shortcut operation in this loop.
     dynamic_path.Shortcut(max_iterations, ramp_checker);
+
+    // Blend any transitions that we missed while shortcutting.
+    // TODO: Don't hard-code these parameters.
+    BlendTransitions(dynamic_path, ramp_checker, 0.5, 4);
 
     if (!dynamic_path.IsValid()) {
         return OpenRAVE::PS_Failed;

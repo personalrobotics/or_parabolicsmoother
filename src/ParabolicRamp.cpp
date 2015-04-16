@@ -1722,6 +1722,10 @@ bool ParabolicRamp1D::IsValid() const
 
 
 
+ParabolicRampND::ParabolicRampND()
+    : blendAttempts(-1)
+{
+}
 
 void ParabolicRampND::SetConstant(const Vector& x,Real t)
 {
@@ -2095,6 +2099,7 @@ void ParabolicRampND::SolveBraking(const Vector& amax)
 void ParabolicRampND::Evaluate(Real t,Vector& x) const
 {
   x.resize(ramps.size());
+
   for(size_t j=0;j<ramps.size();j++)
     x[j]=ramps[j].Evaluate(t);
 }

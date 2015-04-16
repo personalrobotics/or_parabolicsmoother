@@ -106,6 +106,7 @@ class ParabolicRamp1D
 class ParabolicRampND
 {
  public:
+  ParabolicRampND();
   void SetConstant(const Vector& x,Real t=0);
   void SetLinear(const Vector& x0,const Vector& x1,Real t);
   bool SolveMinTimeLinear(const Vector& amax,const Vector& vmax);
@@ -133,6 +134,9 @@ class ParabolicRampND
   /// Calculated upon SolveX
   Real endTime;
   std::vector<ParabolicRamp1D> ramps;
+
+  /// Used for shortcutting.
+  int blendAttempts;
 };
 
 /// Computes a min-time ramp from (x0,v0) to (x1,v1) under the given
