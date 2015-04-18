@@ -120,18 +120,24 @@ Real DynamicPath::GetTotalTime() const
   return t;
 }
 
-int DynamicPath::GetSegment(Real t,Real& u) const
+int DynamicPath::GetSegment(Real t,Real& u,bool& outOfBounds) const
 {
-  if(t < 0) return -1;
+  if(t < 0) {
+    u = 0;
+    outOfBounds = true;
+    return 0;
+  }
   for(size_t i=0;i<ramps.size();i++) {
     if(t <= ramps[i].endTime) {
       u = t;
+      outOfBounds = false;
       return (int)i;
     }
     t -= ramps[i].endTime;
   }
   u = t;
-  return (int)ramps.size();
+  outOfBounds = true;
+  return (int)ramps.size() - 1;
 }
 
 void DynamicPath::Evaluate(Real t,Vector& x) const
@@ -578,8 +584,9 @@ bool DynamicPath::TryShortcut(Real t1,Real t2,RampFeasibilityChecker& check)
 {
   if(t1 > t2) Swap(t1,t2);
   Real u1,u2;
-  int i1 = GetSegment(t1,u1);
-  int i2 = GetSegment(t2,u2);
+  bool delete_i1,delete_i2;
+  int i1 = GetSegment(t1,u1,delete_i1);
+  int i2 = GetSegment(t2,u2,delete_i2);
   if(i1 == i2) return false;
   PARABOLIC_RAMP_ASSERT(u1 >= 0);
   PARABOLIC_RAMP_ASSERT(u1 <= ramps[i1].endTime+EpsilonT);
@@ -627,11 +634,27 @@ bool DynamicPath::TryShortcut(Real t1,Real t2,RampFeasibilityChecker& check)
   ramps[i2].TrimFront(u2);
   ramps[i2].x0 = intermediate.ramps.back().x1;
   ramps[i2].dx0 = intermediate.ramps.back().dx1;
+
+  // The end of ramp i1 is a new waypoint which is part of the shortcutted
+  // trajectory. We don't need to blend this in future iterations.
+  ramps[i1].blendAttempts = -1;
+
+  // Remove the last waypoint. We do this before we change the length of the
+  // trajectory with the shortcut, so i2 is still a valid index.
+  if(delete_i2){
+    ramps.erase(ramps.begin()+i2);
+  }
   
   //replace intermediate ramps with test
   for(int i=0;i<i2-i1-1;i++)
     ramps.erase(ramps.begin()+i1+1);
   ramps.insert(ramps.begin()+i1+1,intermediate.ramps.begin(),intermediate.ramps.end());
+
+  // Remove the first waypoint. We do this after we change the length of the
+  // trajectory so we don't affect where the shortcut is inserted.
+  if(delete_i1) {
+    ramps.erase(ramps.begin()+i1);
+  }
   
   //check for consistency
   for(size_t i=0;i+1<ramps.size();i++) {
