@@ -94,11 +94,6 @@ bool TryBlend(ParabolicRamp::DynamicPath &dynamic_path,
     double const t_max = dynamic_path.GetTotalTime();
     double t = 0;
 
-    RAVELOG_DEBUG("Trying to blend %d ramp trajectory with duration %.3f s"
-                  " using dt = %.3f.\n",
-        dynamic_path.ramps.size(), t_max, dt_shortcut
-    );
-
     for (size_t iwaypoint = 0; iwaypoint < num_ramps - 1; ++iwaypoint) {
         ParabolicRamp::ParabolicRampND &ramp_nd
                 = dynamic_path.ramps[iwaypoint];
@@ -111,8 +106,8 @@ bool TryBlend(ParabolicRamp::DynamicPath &dynamic_path,
             bool const success = dynamic_path.TryShortcut(t1, t2, ramp_checker);
 
             RAVELOG_DEBUG("Blending [ %.3f, %.3f ] transition between ramp %d"
-                          " and %d at t = %.3f: %s.\n",
-                t1, t2, iwaypoint, iwaypoint + 1, t,
+                          " and %d at t = %.3f with dt = %.3f: %s.\n",
+                t1, t2, iwaypoint, iwaypoint + 1, t, dt_shortcut,
                 (success) ? "succeeded" : "failed"
             );
 
@@ -141,7 +136,7 @@ void BlendTransitions(ParabolicRamp::DynamicPath &dynamic_path,
     double dt_shortcut = dt_shortcut_max;
 
     for (int attempt = 0; attempt < num_attempts; ++attempt) {
-        RAVELOG_DEBUG("Blending attempt %d (dt = %.3f) on trajectory with %d ramps"
+        RAVELOG_DEBUG("Blending pass %d (dt = %.3f) on trajectory with %d ramps"
                       " and duration %.3f s.\n",
             attempt, dt_shortcut, dynamic_path.ramps.size(),
             dynamic_path.GetTotalTime()
@@ -187,7 +182,7 @@ bool ORFeasibilityChecker::SegmentFeasible(ParabolicRamp::Vector const &a,
     std::vector<OpenRAVE::dReal> const empty;
 
     return !params_->CheckPathAllConstraints(
-        a, b, empty, empty, 0, OpenRAVE::IT_OpenStart
+        a, b, empty, empty, 0, OpenRAVE::IT_Closed
     );
 }
 
@@ -210,7 +205,25 @@ bool ParabolicSmoother::InitPlan(RobotBasePtr robot,
                                  std::istream &input)
 {
     PlannerParametersPtr const params = make_shared<PlannerParameters>();
+
+    // Deserialize the PlannerParameters once. We only do this to set
+    // _configurationspecification for the next step, so we put the stream back
+    // where it was.
+    int const marker = input.tellg();
     input >> *params;
+    input.seekg(marker);
+
+    // The CheckPathAllConstraints function returns "true" (cast to an integer)
+    // if the _checkpathvelocityconstraintsfn is NULL. This value defaults to
+    // NULL and is not serialized in PlannerParameters. We re-initialize the
+    // parameters with the default values.
+    params->SetConfigurationSpecification(
+        GetEnv(), params->_configurationspecification);
+
+    // Restore any parameters that may have be overwritten by
+    // SetConfigurationSpecification.
+    input >> *params;
+
     return InitPlan(robot, params);
 }
 
