@@ -2,8 +2,8 @@
 Changelog for package or_parabolicsmoother
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2015-05-01)
+------------------
 * Fixed a bug that caused all shortcutting to fail.
 * Implemented waypoint blending.
 * Renamed the smoother to HauserParabolicSmoother.
