@@ -2,6 +2,7 @@
 #define PARABOLICSMOOTHER_H_
 #include <openrave/openrave.h>
 #include "DynamicPath.h"
+#include "ParabolicSmootherParameters.h"
 
 namespace or_parabolicsmoother {
 
@@ -37,7 +38,7 @@ public:
     virtual PlannerParametersConstPtr GetParameters () const;
 
 private:
-    PlannerParametersConstPtr parameters_;
+    ParabolicSmootherParametersPtr parameters_;
 };
 
 
