@@ -202,31 +202,29 @@ bool ParabolicSmoother::InitPlan(RobotBasePtr robot,
     return true;
 }
 
-bool ParabolicSmoother::InitPlan(RobotBasePtr robot,
-                                 std::istream &input)
+bool ParabolicSmoother::InitPlan(RobotBasePtr robot, std::istream &input)
 {
-    ParabolicSmootherParametersPtr const params
-        = make_shared<ParabolicSmootherParameters>();
+    parameters_ = boost::make_shared<ParabolicSmootherParameters>();
 
     // Deserialize the PlannerParameters once. We only do this to set
     // _configurationspecification for the next step, so we put the stream back
     // where it was.
     int const marker = input.tellg();
-    input >> *params;
+    input >> *parameters_;
     input.seekg(marker);
 
     // The CheckPathAllConstraints function returns "true" (cast to an integer)
     // if the _checkpathvelocityconstraintsfn is NULL. This value defaults to
     // NULL and is not serialized in PlannerParameters. We re-initialize the
     // parameters with the default values.
-    params->SetConfigurationSpecification(
-        GetEnv(), params->_configurationspecification);
+    parameters_->SetConfigurationSpecification(
+        GetEnv(), parameters_->_configurationspecification);
 
     // Restore any parameters that may have be overwritten by
     // SetConfigurationSpecification.
-    input >> *params;
+    input >> *parameters_;
 
-    return InitPlan(robot, params);
+    return true;
 }
 
 OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
