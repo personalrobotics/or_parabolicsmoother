@@ -197,14 +197,16 @@ ParabolicSmoother::ParabolicSmoother(EnvironmentBasePtr penv)
 bool ParabolicSmoother::InitPlan(RobotBasePtr robot,
                                  PlannerParametersConstPtr params)
 {
-    parameters_ = params;
+    parameters_ = boost::make_shared<ParabolicSmootherParameters>();
+    parameters_->copy(params);
     return true;
 }
 
 bool ParabolicSmoother::InitPlan(RobotBasePtr robot,
                                  std::istream &input)
 {
-    PlannerParametersPtr const params = make_shared<PlannerParameters>();
+    ParabolicSmootherParametersPtr const params
+        = make_shared<ParabolicSmootherParameters>();
 
     // Deserialize the PlannerParameters once. We only do this to set
     // _configurationspecification for the next step, so we put the stream back
@@ -312,20 +314,26 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     ORFeasibilityChecker base_checker(env, parameters_);
     ParabolicRamp::RampFeasibilityChecker ramp_checker(&base_checker, tolerance);
 
-    // TODO: Split this into multiple iterations so we can call callbacks.
-    // Shortcut using maximum number of iterations. According to OpenRAVE spec:
-    // If 0 or less, planner chooses best iterations.
-    int max_iterations = (parameters_->_nMaxIterations > 0) ?
-                          parameters_->_nMaxIterations : DEFAULT_MAX_ITERATIONS;
-
-    RAVELOG_DEBUG("Shortcutting for %d iterations.\n", max_iterations);
-
     // Perform actual shortcut operation in this loop.
-    dynamic_path.Shortcut(max_iterations, ramp_checker);
+    if (parameters_->do_shortcut_) {
+        // If 0 or less, planner chooses best iterations.
+        int max_iterations = (parameters_->_nMaxIterations > 0) ?
+                              parameters_->_nMaxIterations : DEFAULT_MAX_ITERATIONS;
+
+        // TODO: Split this into multiple iterations so we can call callbacks.
+        // Shortcut using maximum number of iterations. According to OpenRAVE spec:
+        // TODO: Add a timeout here.
+        RAVELOG_DEBUG("Shortcutting for %d iterations.\n", max_iterations);
+        dynamic_path.Shortcut(max_iterations, ramp_checker);
+    }
 
     // Blend any transitions that we missed while shortcutting.
     // TODO: Don't hard-code these parameters.
-    BlendTransitions(dynamic_path, ramp_checker, 0.5, 4);
+    if (parameters_->do_blend_) {
+        RAVELOG_DEBUG("Blending for %d iterations with initial %f radius.\n");
+        BlendTransitions(dynamic_path, ramp_checker,
+            parameters_->blend_radius_, parameters_->blend_iterations_);
+    }
 
     if (!dynamic_path.IsValid()) {
         return OpenRAVE::PS_Failed;
