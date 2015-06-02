@@ -7,7 +7,7 @@ trajectories under geometric constraints and bounded acceleration.
 It is based on code provided with the paper:
   * K. Hauser and V. Ng-Thow-Hing, *Fast Smoothing of Manipulator Trajectories using Optimal Bounded-Acceleration Shortcuts by*, ICRA 2010.
 
-## Paramters
+## Parameters
 
 This algorithm takes the following parameters (with the specified default values):
 
