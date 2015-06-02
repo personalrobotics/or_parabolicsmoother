@@ -9,10 +9,10 @@ It is based on code provided with the paper:
 
 ## Paramters
 
-This algorithm takes the following parameters:
+This algorithm takes the following parameters (with the specified default values):
 
 - `<do_shortcut>1</do_shortcut>` If non-zero, run shortcutting iterations. 
 - `<do_blend>1</do_blend>`: If non-zero, perform blending.
 - `<blend_radius>0.5</blend_radius>` Largest blend radius to attempt, in seconds.
-- `<blend_iterationso>5</blend_radius>` Number of blend radii to search over.
+- `<blend_iterations>5</blend_iterations>` Number of blend radii to search over.
   Each iteration halfs the blend radius.
