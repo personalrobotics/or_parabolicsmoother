@@ -13,7 +13,7 @@ public:
         , blend_radius_(0.5)
         , blend_iterations_(4)
         , do_shortcut_(true)
-        , time_limit_(0.0)
+        , time_limit_(3.0)
     {
         _vXMLParameters.push_back("do_blend");
         _vXMLParameters.push_back("do_shortcut");
