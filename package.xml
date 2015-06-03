@@ -14,5 +14,6 @@
   <author email="kris.hauser@duke.edu">Kris Hauser</author>
   <maintainer email="mkoval@cs.cmu.edu">Michael Koval</maintainer>
   <buildtool_depend>catkin</buildtool_depend>
+  <depend>boost</depend>
   <depend>openrave_catkin</depend>
 </package>

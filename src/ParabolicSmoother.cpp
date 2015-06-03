@@ -314,15 +314,46 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
     // Perform actual shortcut operation in this loop.
     if (parameters_->do_shortcut_) {
-        // If 0 or less, planner chooses best iterations.
-        int max_iterations = (parameters_->_nMaxIterations > 0) ?
-                              parameters_->_nMaxIterations : DEFAULT_MAX_ITERATIONS;
+        typedef boost::chrono::steady_clock clock_t;
+        typedef boost::chrono::duration<double> double_seconds;
+
+        if (parameters_->_nMaxIterations <= 0 && parameters_->time_limit_ <= 0) {
+            RAVELOG_ERROR("No termination condition was specified. Either"
+                          " _nmaxiterations or time_limit is required.\n");
+            return OpenRAVE::PS_Failed;
+        }
+
+        int const max_iterations = (parameters_->_nMaxIterations > 0)
+                                  ? parameters_->_nMaxIterations
+                                  : std::numeric_limits<int>::max();
+        double const time_limit = (parameters_->time_limit_ > 0)
+                                  ? parameters_->time_limit_
+                                  : std::numeric_limits<double>::max();
+
+        RAVELOG_DEBUG(
+            "Shortcutting for a maximum of %d iterations or %f seconds.\n",
+            max_iterations, time_limit
+        );
 
         // TODO: Split this into multiple iterations so we can call callbacks.
         // Shortcut using maximum number of iterations. According to OpenRAVE spec:
-        // TODO: Add a timeout here.
-        RAVELOG_DEBUG("Shortcutting for %d iterations.\n", max_iterations);
-        dynamic_path.Shortcut(max_iterations, ramp_checker);
+        clock_t clock;
+        boost::chrono::time_point<clock_t> start_time = clock.now();
+        boost::chrono::time_point<clock_t> current_time;
+        double ellapsed_time = -1;
+        int iteration = 0;
+
+        while (iteration < max_iterations && ellapsed_time < time_limit) {
+            dynamic_path.Shortcut(1, ramp_checker);
+            iteration++;
+
+            current_time = clock.now();
+            ellapsed_time = boost::chrono::duration_cast<double_seconds>(
+                current_time - start_time).count();
+        }
+
+        RAVELOG_INFO("Terminated after %d iterations and %f seconds.\n",
+            iteration, ellapsed_time);
     }
 
     // Blend any transitions that we missed while shortcutting.
