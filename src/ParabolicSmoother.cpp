@@ -350,6 +350,8 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
             current_time = clock.now();
             ellapsed_time = boost::chrono::duration_cast<double_seconds>(
                 current_time - start_time).count();
+
+            // TODO: Call OpenRAVE's planner callbacks (to allow termination).
         }
 
         RAVELOG_INFO("Terminated after %d iterations and %f seconds.\n",
