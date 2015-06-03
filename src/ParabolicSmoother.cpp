@@ -357,7 +357,6 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     }
 
     // Blend any transitions that we missed while shortcutting.
-    // TODO: Don't hard-code these parameters.
     if (parameters_->do_blend_) {
         RAVELOG_DEBUG("Blending for %d iterations with initial %f radius.\n");
         BlendTransitions(dynamic_path, ramp_checker,
