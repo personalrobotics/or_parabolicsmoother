@@ -1,12 +1,17 @@
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <openrave/planningutils.h>
+
+#include "Config.h"
 #include "ParabolicSmoother.h"
 
 using boost::make_shared;
 using OpenRAVE::EnvironmentBasePtr;
 using OpenRAVE::RobotBasePtr;
 using OpenRAVE::TrajectoryBasePtr;
+
+using ParabolicRamp::EpsilonV;
+using ParabolicRamp::EpsilonT;
 
 namespace {
 
@@ -76,10 +81,8 @@ OpenRAVE::dReal FixLimit(OpenRAVE::dReal const &x,
 
 bool NeedsBlend(ParabolicRamp::ParabolicRampND const &ramp_nd)
 {
-    static double const velocity_epsilon = 1e-12;
-
     for (size_t idof = 0; idof < ramp_nd.dx1.size(); ++idof) {
-        if (std::fabs(ramp_nd.dx1[idof]) > velocity_epsilon) {
+        if (std::fabs(ramp_nd.dx1[idof]) > EpsilonV) {
             return false;
         }
     }
@@ -100,8 +103,8 @@ bool TryBlend(ParabolicRamp::DynamicPath &dynamic_path,
         t += ramp_nd.endTime;
 
         if (NeedsBlend(ramp_nd) && ramp_nd.blendAttempts == attempt) {
-            double const t1 = std::max(t - dt_shortcut, 0.);
-            double const t2 = std::min(t + dt_shortcut, t_max);
+            double const t1 = std::max(t - dt_shortcut, -EpsilonT);
+            double const t2 = std::min(t + dt_shortcut, t_max + EpsilonT);
 
             bool const success = dynamic_path.TryShortcut(t1, t2, ramp_checker);
 
@@ -154,7 +157,7 @@ namespace or_parabolicsmoother
 {
 
 /*
- * ORFeasibilityChecker 
+ * ORFeasibilityChecker
  */
 ORFeasibilityChecker::ORFeasibilityChecker(
         OpenRAVE::EnvironmentBasePtr const &env,
@@ -264,7 +267,7 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     );
     BOOST_ASSERT(dynamic_path.xMin.size() == num_dof);
     BOOST_ASSERT(dynamic_path.xMax.size() == num_dof);
-    
+
     // Copy milestones into the DynamicPath. This assumes that the input
     // trajectory is piecewise linear and stops at each waypoint.
     // TODO: What about velocities?
