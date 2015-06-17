@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <openrave/openrave.h>
 
+#include "Math.h"
+
 ///assertion function
 #define PARABOLIC_RAMP_ASSERT(x)
 
@@ -29,7 +31,7 @@ namespace ParabolicRamp {
 
   ///self validity check level:
   ///- 0 no checking
-  ///- 1 moderate checking 
+  ///- 1 moderate checking
   ///- 2 full checking
   const static int gValidityCheckLevel = 2;
 
