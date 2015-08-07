@@ -10,9 +10,13 @@
     V. Ng-Thow-Hing, appearing in ICRA 2010.
   </description>
   <license>BSD</license>
-  <url type="website">http://motion.pratt.duke.edu/software.html</url>
-  <author email="kris.hauser@duke.edu">Kris Hauser</author>
+  <url type="website">https://github.com/personalrobotics/or_parabolicsmoother</url>
+  <url type="repository">https://github.com/personalrobotics/or_parabolicsmoother.git</url>
+  <url type="bugtracker">https://github.com/personalrobotics/or_parabolicsmoother/issues</url>
   <maintainer email="mkoval@cs.cmu.edu">Michael Koval</maintainer>
+  <author email="mkoval@cs.cmu.edu">Michael Koval</author>
+  <author email="pkv@cs.cmu.edu">Pras Velagapudi</author>
+  <author email="kris.hauser@duke.edu">Kris Hauser</author>
   <buildtool_depend>catkin</buildtool_depend>
   <depend>boost</depend>
   <depend>openrave_catkin</depend>
