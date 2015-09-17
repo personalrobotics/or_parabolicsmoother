@@ -22,7 +22,7 @@ static std::vector<Tout> Convert(std::vector<Tin> const &vin)
 
     for (size_t i = 0; i < vin.size(); ++i) {
         vout[i] = vin[i];
-    }
+    }e
 
     return vout;
 }
@@ -343,23 +343,23 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
         clock_t clock;
         boost::chrono::time_point<clock_t> start_time = clock.now();
         boost::chrono::time_point<clock_t> current_time;
-        double ellapsed_time = -1;
+        double elapsed_time = -1;
         int iteration = 0;
 
-        while (iteration < max_iterations && ellapsed_time < time_limit 
+        while (iteration < max_iterations && elapsed_time < time_limit 
                && dynamic_path.ramps.size() > 3) {
             dynamic_path.Shortcut(1, ramp_checker);
             iteration++;
 
             current_time = clock.now();
-            ellapsed_time = boost::chrono::duration_cast<double_seconds>(
+            elapsed_time = boost::chrono::duration_cast<double_seconds>(
                 current_time - start_time).count();
 
             // TODO: Call OpenRAVE's planner callbacks (to allow termination).
         }
 
         RAVELOG_INFO("Terminated after %d iterations and %f seconds with %d ramps.\n",
-                     iteration, ellapsed_time, dynamic_path.ramps.size());
+                     iteration, elapsed_time, dynamic_path.ramps.size());
     }
 
     // Blend any transitions that we missed while shortcutting.
