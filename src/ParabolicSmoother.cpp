@@ -22,7 +22,7 @@ static std::vector<Tout> Convert(std::vector<Tin> const &vin)
 
     for (size_t i = 0; i < vin.size(); ++i) {
         vout[i] = vin[i];
-    }e
+    }
 
     return vout;
 }
