@@ -407,7 +407,6 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
     // Insert the critical points into the output trajectory.
     double prev_t = 0.;
-    ConvertWaypoint(traj, dynamic_path, prev_t, 0.);
 
     BOOST_FOREACH (double const t, sample_times) {
         double const dt = t - prev_t;
