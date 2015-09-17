@@ -346,7 +346,8 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
         double ellapsed_time = -1;
         int iteration = 0;
 
-        while (iteration < max_iterations && ellapsed_time < time_limit) {
+        while (iteration < max_iterations && ellapsed_time < time_limit 
+               && dynamic_path.ramps.size() > 3) {
             dynamic_path.Shortcut(1, ramp_checker);
             iteration++;
 
@@ -357,8 +358,8 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
             // TODO: Call OpenRAVE's planner callbacks (to allow termination).
         }
 
-        RAVELOG_INFO("Terminated after %d iterations and %f seconds.\n",
-            iteration, ellapsed_time);
+        RAVELOG_INFO("Terminated after %d iterations and %f seconds with %d ramps.\n",
+                     iteration, ellapsed_time, dynamic_path.ramps.size());
     }
 
     // Blend any transitions that we missed while shortcutting.
