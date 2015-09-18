@@ -135,7 +135,7 @@ int DynamicPath::GetSegment(Real t,Real& u,bool& outOfBounds) const
     }
     t -= ramps[i].endTime;
   }
-  u = t;
+  u = ramps.back().endTime;
   outOfBounds = true;
   return (int)ramps.size() - 1;
 }
