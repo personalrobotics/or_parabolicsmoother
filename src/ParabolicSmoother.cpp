@@ -270,8 +270,9 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
     // Copy milestones into the DynamicPath. This assumes that the input
     // trajectory is piecewise linear and stops at each waypoint.
-    // TODO: What about velocities?
     std::vector<ParabolicRamp::Vector> milestones(traj->GetNumWaypoints());
+    std::vector<ParabolicRamp::Vector> velocities(traj->GetNumWaypoints());
+    bool zero_velocity = true;
 
     for (size_t iwaypoint = 0; iwaypoint < traj->GetNumWaypoints(); ++iwaypoint) {
         std::vector<OpenRAVE::dReal> waypoint;
@@ -289,10 +290,31 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
         BOOST_ASSERT(waypoint.size() == num_dof);
         milestones[iwaypoint] = Convert<double>(waypoint);
+
+        if (parameters_->use_velocity_){
+            waypoint.clear();
+            traj->GetWaypoint(iwaypoint, waypoint, vel_cspec);
+
+            // Check to see if the trajectory has zero velocity
+            if (zero_velocity){
+                for (int j = 0; j < waypoint.size(); ++j){
+                    if (waypoint[j] != 0.0){
+                        zero_velocity = false;
+                        break;
+                    }
+                }
+            }
+            BOOST_ASSERT(waypoint.size() == num_dof);
+            velocities[iwaypoint] = Convert<double>(waypoint);
+        }
     }
 
     RAVELOG_DEBUG("Setting %d milestones.\n", milestones.size());
-    dynamic_path.SetMilestones(milestones);
+    if (parameters_->use_velocity_ && !zero_velocity){
+        dynamic_path.SetMilestones(milestones, velocities);
+    } else{
+        dynamic_path.SetMilestones(milestones);
+    }
 
     if (!dynamic_path.IsValid()) {
         throw OpenRAVE::openrave_exception(

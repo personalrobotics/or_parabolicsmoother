@@ -14,12 +14,14 @@ public:
         , blend_iterations_(4)
         , do_shortcut_(true)
         , time_limit_(3.0)
+        , use_velocity_(true)
     {
         _vXMLParameters.push_back("do_blend");
         _vXMLParameters.push_back("do_shortcut");
         _vXMLParameters.push_back("time_limit");
         _vXMLParameters.push_back("blend_radius");
         _vXMLParameters.push_back("blend_iterations");
+        _vXMLParameters.push_back("use_velocity");
     }
 
     virtual void copy(boost::shared_ptr<PlannerParameters const> r)
@@ -33,6 +35,7 @@ public:
             blend_iterations_ = p->blend_iterations_;
             do_shortcut_ = p->do_shortcut_;
             time_limit_ = p->time_limit_;
+            use_velocity_ = p->use_velocity_;
         }
 
         PlannerParameters::copy(r);
@@ -49,6 +52,8 @@ public:
 
     double time_limit_;
 
+    bool use_velocity_;
+
 protected:
     virtual bool serialize(std::ostream &stream) const
     {
@@ -61,7 +66,8 @@ protected:
             << "<do_shortcut>" << do_shortcut_ << "</do_shortcut>\n"
             << "<time_limit>" << time_limit_ << "</time_limit>\n"
             << "<blend_radius>" << blend_radius_ << "</blend_radius>\n"
-            << "<blend_iterations>" << blend_iterations_ << "</blend_iterations>\n";
+            << "<blend_iterations>" << blend_iterations_ << "</blend_iterations>\n"
+            << "<use_velocity>" << use_velocity_ << "</use_velocity>\n";
 
         return !!stream;
     }
@@ -88,7 +94,8 @@ protected:
           || name == "blend_radius"
           || name == "blend_iterations"
           || name == "do_shortcut"
-          || name == "time_limit";
+          || name == "time_limit"
+          || name == "use_velocity";
 
         return is_processing_ ? PE_Support : PE_Pass;
     }
@@ -109,6 +116,8 @@ protected:
                 _ss >> do_shortcut_;
             } else if (name == "time_limit") {
                 _ss >> time_limit_;
+            } else if (name == "use_velocity") {
+                _ss >> use_velocity_;
             } else {
                 RAVELOG_WARN(str(format("unknown tag %s\n") % name));
             }
