@@ -238,10 +238,13 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
     EnvironmentBasePtr const env = GetEnv();
     ConfigurationSpecification pos_cspec
         = parameters_->_configurationspecification;
+    ConfigurationSpecification traj_cspec
+        = traj->GetConfigurationSpecification();
+
 
     // TODO: How do we do this properly?
-    BOOST_FOREACH (ConfigurationSpecification::Group &group,
-                   pos_cspec._vgroups) {
+    BOOST_FOREACH(ConfigurationSpecification::Group &group,
+                  pos_cspec._vgroups) {
         group.interpolation = "quadratic";
     }
 
@@ -270,12 +273,25 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
 
     // Copy milestones into the DynamicPath. This assumes that the input
     // trajectory is piecewise linear and stops at each waypoint.
-    // TODO: What about velocities?
     std::vector<ParabolicRamp::Vector> milestones(traj->GetNumWaypoints());
+    std::vector<ParabolicRamp::Vector> velocities(traj->GetNumWaypoints());
 
+    // Check whether this trajectory has all the required velocity groups.
+    bool has_velocities = true;
+    std::vector<ConfigurationSpecification::Group>::const_iterator it;
+    BOOST_FOREACH(ConfigurationSpecification::Group &group,
+                  vel_cspec._vgroups) {
+        it = traj_cspec.FindCompatibleGroup(group, true);
+        if (it == traj_cspec._vgroups.end()) {
+            has_velocities = false;
+        }
+    }
+
+    // Iterate through each waypoint and convert them to milestones.
     for (size_t iwaypoint = 0; iwaypoint < traj->GetNumWaypoints(); ++iwaypoint) {
         std::vector<OpenRAVE::dReal> waypoint;
         traj->GetWaypoint(iwaypoint, waypoint, pos_cspec);
+        BOOST_ASSERT(waypoint.size() == num_dof);
 
         // Fix small joint limit violations.
         for (size_t idof = 0; idof < num_dof; ++idof) {
@@ -287,12 +303,23 @@ OpenRAVE::PlannerStatus ParabolicSmoother::PlanPath(TrajectoryBasePtr traj)
             );
         }
 
-        BOOST_ASSERT(waypoint.size() == num_dof);
         milestones[iwaypoint] = Convert<double>(waypoint);
+
+        // Convert velocities if available and required.
+        if (parameters_->use_velocity_ && has_velocities) {
+            waypoint.clear();
+            traj->GetWaypoint(iwaypoint, waypoint, vel_cspec);
+            BOOST_ASSERT(waypoint.size() == num_dof);
+            velocities[iwaypoint] = Convert<double>(waypoint);
+        }
     }
 
     RAVELOG_DEBUG("Setting %d milestones.\n", milestones.size());
-    dynamic_path.SetMilestones(milestones);
+    if (parameters_->use_velocity_ && has_velocities){
+        dynamic_path.SetMilestones(milestones, velocities);
+    } else{
+        dynamic_path.SetMilestones(milestones);
+    }
 
     if (!dynamic_path.IsValid()) {
         throw OpenRAVE::openrave_exception(
