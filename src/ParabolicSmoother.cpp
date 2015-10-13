@@ -1,3 +1,4 @@
+#include <boost/chrono.hpp>
 #include <boost/foreach.hpp>
 #include <boost/make_shared.hpp>
 #include <openrave/planningutils.h>
