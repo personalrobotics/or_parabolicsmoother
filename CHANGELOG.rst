@@ -2,8 +2,8 @@
 Changelog for package or_parabolicsmoother
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.0 (2015-10-12)
+------------------
 * Added parameters (`#8 <https://github.com/personalrobotics/or_parabolicsmoother/issues/8>`_, `#9 <https://github.com/personalrobotics/or_parabolicsmoother/issues/9>`_)
 * Added basic support for trajectories that define waypoint velocities (`#17 <https://github.com/personalrobotics/or_parabolicsmoother/issues/17>`_)
 * Added a check to terminate smoothing when the trajectory contains two waypoints (`#12 <https://github.com/personalrobotics/or_parabolicsmoother/issues/12>`_)
