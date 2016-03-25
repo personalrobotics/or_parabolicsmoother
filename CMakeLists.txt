@@ -8,6 +8,7 @@ find_package(Boost REQUIRED COMPONENTS chrono system)
 ###################################
 ## catkin specific configuration ##
 ###################################
+catkin_python_setup()
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
