@@ -9,11 +9,8 @@
 ///assertion function
 #define PARABOLIC_RAMP_ASSERT(x)
 
-///print an error
-#define PARABOLIC_RAMP_PERROR(...) (RAVELOG_ERROR(__VA_ARGS__))
-
-///print a notification
-#define PARABOLIC_RAMP_PLOG(...) (RAVELOG_DEBUG(__VA_ARGS__))
+#define PARABOLIC_RAMP_PERROR(...) RAVELOG_ERROR(__VA_ARGS__)
+#define PARABOLIC_RAMP_PLOG(...) RAVELOG_DEBUG(__VA_ARGS__)
 
 namespace ParabolicRamp {
 
